@@ -179,13 +179,14 @@
 }
 .cube-well {
   position: absolute; inset: 0;
+  pointer-events: auto;
   background: radial-gradient(circle at 50% 40%, oklch(0.2 0.03 250), oklch(0.12 0.02 250));
   box-shadow: inset 0 0 60px oklch(0 0 0 / 0.6);
 }
 .cube-face-active .cube-well {
   box-shadow: inset 0 0 60px oklch(0 0 0 / 0.5), inset 0 0 120px oklch(0.82 0.16 75 / 0.15);
 }
-.cube-wall { position: absolute; }
+.cube-wall { position: absolute; pointer-events: none; }
 .cube-wall-top, .cube-wall-bottom { left: 0; right: 0; height: var(--well-depth); }
 .cube-wall-left, .cube-wall-right { top: 0; bottom: 0; width: var(--well-depth); }
 .cube-wall-top { top: 0; transform-origin: top; transform: rotateX(-90deg); background: linear-gradient(oklch(0.28 0.03 250), oklch(0.14 0.02 250)); }
