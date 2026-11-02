@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,11 +26,20 @@ const faces: Face[] = [
   { key: "bottom", label: "06 / Below", title: "The floor", body: "Grounded. Six faces, one object, infinite angles.", transform: "rotateX(-90deg)" },
 ];
 
+const navButtons = [
+  { glyph: "↑", label: "Tilt up", dx: 90, dy: 0, tx: "0px", ty: "-22px" },
+  { glyph: "↓", label: "Tilt down", dx: -90, dy: 0, tx: "0px", ty: "22px" },
+  { glyph: "←", label: "Turn left", dx: 0, dy: 90, tx: "-22px", ty: "0px" },
+  { glyph: "→", label: "Turn right", dx: 0, dy: -90, tx: "22px", ty: "0px" },
+];
+
 function Index() {
   const [matrix, setMatrix] = useState("none");
   const [active, setActive] = useState("front");
   const [contentRot, setContentRot] = useState<Record<string, number>>({});
   const [size, setSize] = useState(420);
+  const [navStamp, setNavStamp] = useState(0);
+  const turnRef = useRef<(dx: number, dy: number) => void>(() => {});
 
   useEffect(() => {
     // Orientation is a matrix; each input rotates around SCREEN axes (pre-multiplied),
