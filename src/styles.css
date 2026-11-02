@@ -166,7 +166,7 @@
 }
 .cube-face {
   position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
-  padding: 2.5rem; background: var(--face); border: 1px solid var(--face-edge);
+  padding: 0; background: var(--face); border: 1px solid var(--face-edge);
   backdrop-filter: blur(6px); box-shadow: inset 0 0 80px oklch(0.82 0.16 75 / 0.08);
   transition: box-shadow .4s, border-color .4s;
 }

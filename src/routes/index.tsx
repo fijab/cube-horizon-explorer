@@ -29,6 +29,7 @@ const faces: Face[] = [
 function Index() {
   const [matrix, setMatrix] = useState("none");
   const [active, setActive] = useState("front");
+  const [contentRot, setContentRot] = useState<Record<string, number>>({});
   const [size, setSize] = useState(420);
 
   useEffect(() => {
@@ -104,7 +105,7 @@ function Index() {
       const dx = t.clientX - touch.x;
       const dy = t.clientY - touch.y;
       if (!axis && Math.hypot(dx, dy) < 6) return;
-      push(dx * 0.4, -dy * 0.4);
+      push(dx * 0.4, dy * 0.4);
       touch = { x: t.clientX, y: t.clientY };
     };
     const te = () => { touch = null; release(); };
@@ -112,6 +113,7 @@ function Index() {
       const d: Record<string, [number, number]> = { ArrowUp: [90, 0], ArrowDown: [-90, 0], ArrowLeft: [0, 90], ArrowRight: [0, -90] };
       const k = d[e.key];
       if (!k) return;
+      orient(k[0] ? "x" : "y");
       pending.x += k[0];
       pending.y += k[1];
     };
