@@ -220,6 +220,22 @@ function Index() {
                   <h2 className="font-display text-4xl leading-none text-foreground md:text-5xl">{f.title}</h2>
                   <p className="mt-4 max-w-xs text-sm text-muted-foreground">{f.body}</p>
                 </div>
+                {navStamp > 0 && active === f.key && (
+                  <nav key={navStamp} className="cube-nav" aria-label="Cube navigation">
+                    {navButtons.map((n, i) => (
+                      <button
+                        key={n.label}
+                        type="button"
+                        aria-label={n.label}
+                        className="cube-nav-btn"
+                        style={{ "--i": i, "--tx": n.tx, "--ty": n.ty } as CSSProperties}
+                        onClick={() => turnRef.current(n.dx, n.dy)}
+                      >
+                        {n.glyph}
+                      </button>
+                    ))}
+                  </nav>
+                )}
               </div>
             </section>
           ))}
