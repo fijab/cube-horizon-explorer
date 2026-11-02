@@ -81,6 +81,7 @@ function Index() {
       if (!axis) {
         axis = Math.abs(dx) >= Math.abs(dy) ? "y" : "x";
         orient(axis);
+        setNavStamp(0);
       }
       const v = axis === "y" ? dx : dy;
       pending[axis] += v;
@@ -93,7 +94,18 @@ function Index() {
         gesture[a] = 0;
       }
       axis = null;
+      snapping = true;
     };
+
+    // One face turn in a given direction, shared by arrow keys and nav buttons.
+    const turn = (dx: number, dy: number) => {
+      setNavStamp(0);
+      orient(dx ? "x" : "y");
+      pending.x += dx;
+      pending.y += dy;
+      snapping = true;
+    };
+    turnRef.current = turn;
 
     const resize = () => setSize(Math.min(window.innerWidth, window.innerHeight) * 0.55);
     resize();
@@ -122,10 +134,7 @@ function Index() {
     const key = (e: KeyboardEvent) => {
       const d: Record<string, [number, number]> = { ArrowUp: [90, 0], ArrowDown: [-90, 0], ArrowLeft: [0, 90], ArrowRight: [0, -90] };
       const k = d[e.key];
-      if (!k) return;
-      orient(k[0] ? "x" : "y");
-      pending.x += k[0];
-      pending.y += k[1];
+      if (k) turn(k[0], k[1]);
     };
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", ts);
