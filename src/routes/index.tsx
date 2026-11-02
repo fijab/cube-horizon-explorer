@@ -147,6 +147,11 @@ function Index() {
       const sy = pending.y * 0.1;
       pending.x -= sx;
       pending.y -= sy;
+      // When the snap has finished settling, bloom the nav buttons onto the front face.
+      if (snapping && Math.abs(sx) + Math.abs(sy) < 0.4) {
+        snapping = false;
+        setNavStamp(Date.now());
+      }
       if (Math.abs(sx) + Math.abs(sy) > 0.001) {
         m = new DOMMatrix().rotateSelf(sx, sy, 0).multiply(m);
         setMatrix(m.toString());
