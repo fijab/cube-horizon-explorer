@@ -27,7 +27,7 @@ const faces: Face[] = [
 ];
 
 function Index() {
-  const [matrix, setMatrix] = useState("rotateX(12deg) rotateY(18deg)");
+  const [matrix, setMatrix] = useState("none");
   const [active, setActive] = useState("front");
   const [size, setSize] = useState(420);
 
@@ -120,6 +120,8 @@ function Index() {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", ts);
       window.removeEventListener("touchmove", tm);
+      window.removeEventListener("touchend", te);
+      clearTimeout(wheelTimer);
       window.removeEventListener("keydown", key);
     };
   }, []);
@@ -143,7 +145,7 @@ function Index() {
             width: size,
             height: size,
             transformStyle: "preserve-3d",
-            transform: matrix,
+            transform: `rotateX(-10deg) rotateY(-14deg) ${matrix}`,
           }}
         >
           {faces.map((f) => (
