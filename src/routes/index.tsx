@@ -27,12 +27,17 @@ const faces: Face[] = [
 ];
 
 function Index() {
-  const [rot, setRot] = useState({ x: -12, y: 18 });
-  const target = useRef({ x: -12, y: 18 });
-  const cur = useRef({ x: -12, y: 18 });
+  const [matrix, setMatrix] = useState("rotateX(12deg) rotateY(18deg)");
+  const [active, setActive] = useState("front");
   const [size, setSize] = useState(420);
 
   useEffect(() => {
+    // Orientation is a matrix; each input rotates around SCREEN axes (pre-multiplied),
+    // so controls feel the same no matter which face is toward the camera.
+    let m = new DOMMatrix().rotateSelf(12, 18, 0);
+    const pending = { x: 0, y: 0 };
+    const faceMats = faces.map((f) => ({ key: f.key, mat: new DOMMatrix(f.transform) }));
+
     const resize = () => setSize(Math.min(window.innerWidth, window.innerHeight) * 0.55);
     resize();
     window.addEventListener("resize", resize);
@@ -40,24 +45,24 @@ function Index() {
       e.preventDefault();
       const horiz = e.shiftKey ? e.deltaY : e.deltaX;
       const vert = e.shiftKey ? 0 : e.deltaY;
-      target.current.y -= horiz * 0.15;
-      target.current.x = Math.max(-90, Math.min(90, target.current.x + vert * 0.15));
+      pending.y -= horiz * 0.15;
+      pending.x -= vert * 0.15;
     };
     let touch: { x: number; y: number } | null = null;
     const ts = (e: TouchEvent) => { const t0 = e.touches[0]; if (t0) touch = { x: t0.clientX, y: t0.clientY }; };
     const tm = (e: TouchEvent) => {
       const t = e.touches[0];
       if (!touch || !t) return;
-      target.current.y += (t.clientX - touch.x) * 0.4;
-      target.current.x = Math.max(-90, Math.min(90, target.current.x - (t.clientY - touch.y) * 0.4));
+      pending.y += (t.clientX - touch.x) * 0.4;
+      pending.x -= (t.clientY - touch.y) * 0.4;
       touch = { x: t.clientX, y: t.clientY };
     };
     const key = (e: KeyboardEvent) => {
-      const m: Record<string, [number, number]> = { ArrowUp: [-90, 0], ArrowDown: [90, 0], ArrowLeft: [0, 90], ArrowRight: [0, -90] };
-      const d = m[e.key];
-      if (!d) return;
-      target.current.x = Math.max(-90, Math.min(90, Math.round((target.current.x + d[0]) / 90) * 90));
-      target.current.y = Math.round((target.current.y + d[1]) / 90) * 90;
+      const d: Record<string, [number, number]> = { ArrowUp: [90, 0], ArrowDown: [-90, 0], ArrowLeft: [0, 90], ArrowRight: [0, -90] };
+      const k = d[e.key];
+      if (!k) return;
+      pending.x += k[0];
+      pending.y += k[1];
     };
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", ts);
@@ -65,11 +70,24 @@ function Index() {
     window.addEventListener("keydown", key);
     let raf = 0;
     const loop = () => {
-      cur.current.x += (target.current.x - cur.current.x) * 0.08;
-      cur.current.y += (target.current.y - cur.current.y) * 0.08;
-      setRot({ ...cur.current });
+      const sx = pending.x * 0.1;
+      const sy = pending.y * 0.1;
+      pending.x -= sx;
+      pending.y -= sy;
+      if (Math.abs(sx) + Math.abs(sy) > 0.001) {
+        m = new DOMMatrix().rotateSelf(sx, sy, 0).multiply(m);
+        setMatrix(m.toString());
+        let best = "front";
+        let bestZ = -Infinity;
+        for (const f of faceMats) {
+          const n = m.multiply(f.mat).transformPoint({ x: 0, y: 0, z: 1 });
+          if (n.z > bestZ) { bestZ = n.z; best = f.key; }
+        }
+        setActive(best);
+      }
       raf = requestAnimationFrame(loop);
     };
+    setMatrix(m.toString());
     loop();
     return () => {
       cancelAnimationFrame(raf);
@@ -82,9 +100,6 @@ function Index() {
   }, []);
 
   const half = size / 2;
-  const snap = (deg: number) => ((Math.round(deg / 90) % 4) + 4) % 4;
-  const active =
-    rot.x < -45 ? "bottom" : rot.x > 45 ? "top" : ["front", "left", "back", "right"][snap(rot.y)];
 
   return (
     <main className="cube-stage fixed inset-0 overflow-hidden">
@@ -93,7 +108,7 @@ function Index() {
         TESSERACT
       </header>
       <div className="absolute right-8 top-8 z-10 font-mono text-xs text-muted-foreground">
-        X {rot.x.toFixed(0)}° · Y {rot.y.toFixed(0)}°
+        {faces.find((f) => f.key === active)?.label}
       </div>
 
       <div className="flex h-full items-center justify-center" style={{ perspective: size * 3 }}>
@@ -103,7 +118,7 @@ function Index() {
             width: size,
             height: size,
             transformStyle: "preserve-3d",
-            transform: `rotateX(${-rot.x}deg) rotateY(${rot.y}deg)`,
+            transform: matrix,
           }}
         >
           {faces.map((f) => (
