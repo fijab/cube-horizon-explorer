@@ -29,6 +29,7 @@ const faces: Face[] = [
 function Index() {
   const [matrix, setMatrix] = useState("none");
   const [active, setActive] = useState("front");
+  const [contentRot, setContentRot] = useState<Record<string, number>>({});
   const [size, setSize] = useState(420);
 
   useEffect(() => {
@@ -42,8 +43,35 @@ function Index() {
     let axis: "x" | "y" | null = null;
     const faceMats = faces.map((f) => ({ key: f.key, mat: new DOMMatrix(f.transform) }));
 
+    // When a turn direction is known, pre-rotate the content of every hidden face
+    // that this turn can bring to the front, so it lands upright after the snap.
+    const orient = (a: "x" | "y") => {
+      const front = faceMats.reduce((best, f) =>
+        m.multiply(f.mat).transformPoint({ x: 0, y: 0, z: 1 }).z >
+        m.multiply(best.mat).transformPoint({ x: 0, y: 0, z: 1 }).z ? f : best,
+      );
+      setContentRot((prev) => {
+        const next = { ...prev };
+        for (const f of faceMats) {
+          if (f.key === front.key) continue;
+          for (const k of [90, 180, 270]) {
+            const R = a === "x" ? new DOMMatrix().rotateSelf(k, 0, 0) : new DOMMatrix().rotateSelf(0, k, 0);
+            const M = R.multiply(m).multiply(f.mat);
+            if (M.transformPoint({ x: 0, y: 0, z: 1 }).z < 0.9) continue;
+            const up = M.transformPoint({ x: 0, y: -1, z: 0 });
+            const angle = (Math.atan2(up.x, -up.y) * 180) / Math.PI;
+            next[f.key] = -Math.round(angle / 90) * 90;
+          }
+        }
+        return next;
+      });
+    };
+
     const push = (dx: number, dy: number) => {
-      if (!axis) axis = Math.abs(dx) >= Math.abs(dy) ? "y" : "x";
+      if (!axis) {
+        axis = Math.abs(dx) >= Math.abs(dy) ? "y" : "x";
+        orient(axis);
+      }
       const v = axis === "y" ? dx : dy;
       pending[axis] += v;
       gesture[axis] += v;
@@ -77,7 +105,7 @@ function Index() {
       const dx = t.clientX - touch.x;
       const dy = t.clientY - touch.y;
       if (!axis && Math.hypot(dx, dy) < 6) return;
-      push(dx * 0.4, -dy * 0.4);
+      push(dx * 0.4, dy * 0.4);
       touch = { x: t.clientX, y: t.clientY };
     };
     const te = () => { touch = null; release(); };
@@ -85,6 +113,7 @@ function Index() {
       const d: Record<string, [number, number]> = { ArrowUp: [90, 0], ArrowDown: [-90, 0], ArrowLeft: [0, 90], ArrowRight: [0, -90] };
       const k = d[e.key];
       if (!k) return;
+      orient(k[0] ? "x" : "y");
       pending.x += k[0];
       pending.y += k[1];
     };
@@ -154,10 +183,15 @@ function Index() {
               className={`cube-face ${active === f.key ? "cube-face-active" : ""}`}
               style={{ width: size, height: size, transform: `${f.transform} translateZ(${half}px)` }}
             >
-              <span className="font-mono text-xs tracking-widest text-primary">{f.label}</span>
-              <div>
-                <h2 className="font-display text-4xl leading-none text-foreground md:text-5xl">{f.title}</h2>
-                <p className="mt-4 max-w-xs text-sm text-muted-foreground">{f.body}</p>
+              <div
+                className="flex h-full w-full flex-col justify-between p-10"
+                style={{ transform: `rotate(${contentRot[f.key] ?? 0}deg)` }}
+              >
+                <span className="font-mono text-xs tracking-widest text-primary">{f.label}</span>
+                <div>
+                  <h2 className="font-display text-4xl leading-none text-foreground md:text-5xl">{f.title}</h2>
+                  <p className="mt-4 max-w-xs text-sm text-muted-foreground">{f.body}</p>
+                </div>
               </div>
             </section>
           ))}
