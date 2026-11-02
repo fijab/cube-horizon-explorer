@@ -174,7 +174,7 @@ function Index() {
             width: size,
             height: size,
             transformStyle: "preserve-3d",
-            transform: `rotateX(-10deg) rotateY(-14deg) ${matrix}`,
+            transform: `rotateX(-10deg) rotateY(0deg) ${matrix}`,
           }}
         >
           {faces.map((f) => (
