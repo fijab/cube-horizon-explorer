@@ -50,6 +50,7 @@ function Index() {
     const pending = { x: 0, y: 0 };
     const gesture = { x: 0, y: 0 };
     let axis: "x" | "y" | null = null;
+    let snapping = false;
     const faceMats = faces.map((f) => ({ key: f.key, mat: new DOMMatrix(f.transform) }));
 
     // When a turn direction is known, pre-rotate the content of every hidden face
