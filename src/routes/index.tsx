@@ -44,9 +44,9 @@ function Index() {
       target.current.x = Math.max(-90, Math.min(90, target.current.x + vert * 0.15));
     };
     let touch: { x: number; y: number } | null = null;
-    const ts = (e: TouchEvent) => (touch = { x: e.touches[0].clientX, y: e.touches[0].clientY });
+    const ts = (e: TouchEvent) => { const t0 = e.touches[0]; if (t0) touch = { x: t0.clientX, y: t0.clientY }; };
     const tm = (e: TouchEvent) => {
-      if (!touch) return;
+      if (!touch || !e.touches[0]) return;
       const t = e.touches[0];
       target.current.y += (t.clientX - touch.x) * 0.4;
       target.current.x = Math.max(-90, Math.min(90, target.current.x - (t.clientY - touch.y) * 0.4));
