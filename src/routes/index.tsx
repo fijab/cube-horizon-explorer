@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,11 +26,20 @@ const faces: Face[] = [
   { key: "bottom", label: "06 / Below", title: "The floor", body: "Grounded. Six faces, one object, infinite angles.", transform: "rotateX(-90deg)" },
 ];
 
+const navButtons = [
+  { glyph: "↑", label: "Tilt up", dx: 90, dy: 0, tx: "0px", ty: "-22px" },
+  { glyph: "↓", label: "Tilt down", dx: -90, dy: 0, tx: "0px", ty: "22px" },
+  { glyph: "←", label: "Turn left", dx: 0, dy: 90, tx: "-22px", ty: "0px" },
+  { glyph: "→", label: "Turn right", dx: 0, dy: -90, tx: "22px", ty: "0px" },
+];
+
 function Index() {
   const [matrix, setMatrix] = useState("none");
   const [active, setActive] = useState("front");
   const [contentRot, setContentRot] = useState<Record<string, number>>({});
   const [size, setSize] = useState(420);
+  const [navStamp, setNavStamp] = useState(0);
+  const turnRef = useRef<(dx: number, dy: number) => void>(() => {});
 
   useEffect(() => {
     // Orientation is a matrix; each input rotates around SCREEN axes (pre-multiplied),
@@ -41,6 +50,7 @@ function Index() {
     const pending = { x: 0, y: 0 };
     const gesture = { x: 0, y: 0 };
     let axis: "x" | "y" | null = null;
+    let snapping = false;
     const faceMats = faces.map((f) => ({ key: f.key, mat: new DOMMatrix(f.transform) }));
 
     // When a turn direction is known, pre-rotate the content of every hidden face
@@ -71,6 +81,7 @@ function Index() {
       if (!axis) {
         axis = Math.abs(dx) >= Math.abs(dy) ? "y" : "x";
         orient(axis);
+        setNavStamp(0);
       }
       const v = axis === "y" ? dx : dy;
       pending[axis] += v;
@@ -83,7 +94,18 @@ function Index() {
         gesture[a] = 0;
       }
       axis = null;
+      snapping = true;
     };
+
+    // One face turn in a given direction, shared by arrow keys and nav buttons.
+    const turn = (dx: number, dy: number) => {
+      setNavStamp(0);
+      orient(dx ? "x" : "y");
+      pending.x += dx;
+      pending.y += dy;
+      snapping = true;
+    };
+    turnRef.current = turn;
 
     const resize = () => setSize(Math.min(window.innerWidth, window.innerHeight) * 0.55);
     resize();
@@ -112,10 +134,7 @@ function Index() {
     const key = (e: KeyboardEvent) => {
       const d: Record<string, [number, number]> = { ArrowUp: [90, 0], ArrowDown: [-90, 0], ArrowLeft: [0, 90], ArrowRight: [0, -90] };
       const k = d[e.key];
-      if (!k) return;
-      orient(k[0] ? "x" : "y");
-      pending.x += k[0];
-      pending.y += k[1];
+      if (k) turn(k[0], k[1]);
     };
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", ts);
@@ -128,6 +147,11 @@ function Index() {
       const sy = pending.y * 0.1;
       pending.x -= sx;
       pending.y -= sy;
+      // When the snap has finished settling, bloom the nav buttons onto the front face.
+      if (snapping && Math.abs(sx) + Math.abs(sy) < 0.4) {
+        snapping = false;
+        setNavStamp(Date.now());
+      }
       if (Math.abs(sx) + Math.abs(sy) > 0.001) {
         m = new DOMMatrix().rotateSelf(sx, sy, 0).multiply(m);
         setMatrix(m.toString());
@@ -196,6 +220,22 @@ function Index() {
                   <h2 className="font-display text-4xl leading-none text-foreground md:text-5xl">{f.title}</h2>
                   <p className="mt-4 max-w-xs text-sm text-muted-foreground">{f.body}</p>
                 </div>
+                {navStamp > 0 && active === f.key && (
+                  <nav key={navStamp} className="cube-nav" aria-label="Cube navigation">
+                    {navButtons.map((n, i) => (
+                      <button
+                        key={n.label}
+                        type="button"
+                        aria-label={n.label}
+                        className="cube-nav-btn"
+                        style={{ "--i": i, "--tx": n.tx, "--ty": n.ty } as CSSProperties}
+                        onClick={() => turnRef.current(n.dx, n.dy)}
+                      >
+                        {n.glyph}
+                      </button>
+                    ))}
+                  </nav>
+                )}
               </div>
             </section>
           ))}
