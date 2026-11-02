@@ -34,29 +34,53 @@ function Index() {
   useEffect(() => {
     // Orientation is a matrix; each input rotates around SCREEN axes (pre-multiplied),
     // so controls feel the same no matter which face is toward the camera.
-    let m = new DOMMatrix().rotateSelf(12, 18, 0);
+    // Orientation stays axis-aligned: each gesture is locked to one axis (x or y)
+    // and snaps to the nearest 90° on release, so no diagonal/roll ever builds up.
+    let m = new DOMMatrix();
     const pending = { x: 0, y: 0 };
+    const gesture = { x: 0, y: 0 };
+    let axis: "x" | "y" | null = null;
     const faceMats = faces.map((f) => ({ key: f.key, mat: new DOMMatrix(f.transform) }));
+
+    const push = (dx: number, dy: number) => {
+      if (!axis) axis = Math.abs(dx) >= Math.abs(dy) ? "y" : "x";
+      const v = axis === "y" ? dx : dy;
+      pending[axis] += v;
+      gesture[axis] += v;
+    };
+    const release = () => {
+      for (const a of ["x", "y"] as const) {
+        const snapTo = Math.round(gesture[a] / 90) * 90;
+        pending[a] += snapTo - gesture[a];
+        gesture[a] = 0;
+      }
+      axis = null;
+    };
 
     const resize = () => setSize(Math.min(window.innerWidth, window.innerHeight) * 0.55);
     resize();
     window.addEventListener("resize", resize);
+    let wheelTimer: ReturnType<typeof setTimeout> | undefined;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const horiz = e.shiftKey ? e.deltaY : e.deltaX;
       const vert = e.shiftKey ? 0 : e.deltaY;
-      pending.y -= horiz * 0.15;
-      pending.x -= vert * 0.15;
+      push(-horiz * 0.15, -vert * 0.15);
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(release, 160);
     };
     let touch: { x: number; y: number } | null = null;
     const ts = (e: TouchEvent) => { const t0 = e.touches[0]; if (t0) touch = { x: t0.clientX, y: t0.clientY }; };
     const tm = (e: TouchEvent) => {
       const t = e.touches[0];
       if (!touch || !t) return;
-      pending.y += (t.clientX - touch.x) * 0.4;
-      pending.x -= (t.clientY - touch.y) * 0.4;
+      const dx = t.clientX - touch.x;
+      const dy = t.clientY - touch.y;
+      if (!axis && Math.hypot(dx, dy) < 6) return;
+      push(dx * 0.4, -dy * 0.4);
       touch = { x: t.clientX, y: t.clientY };
     };
+    const te = () => { touch = null; release(); };
     const key = (e: KeyboardEvent) => {
       const d: Record<string, [number, number]> = { ArrowUp: [90, 0], ArrowDown: [-90, 0], ArrowLeft: [0, 90], ArrowRight: [0, -90] };
       const k = d[e.key];
@@ -67,6 +91,7 @@ function Index() {
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", ts);
     window.addEventListener("touchmove", tm);
+    window.addEventListener("touchend", te);
     window.addEventListener("keydown", key);
     let raf = 0;
     const loop = () => {
