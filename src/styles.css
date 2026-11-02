@@ -165,12 +165,29 @@
   transform: perspective(600px) rotateX(70deg) translateY(30%);
 }
 .cube-face {
-  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
-  padding: 0; background: var(--face); border: 1px solid var(--face-edge);
-  backdrop-filter: blur(6px); box-shadow: inset 0 0 80px oklch(0.82 0.16 75 / 0.08);
-  transition: box-shadow .4s, border-color .4s;
+  --frame: 14px; --well-depth: 28px;
+  position: absolute; inset: 0; transform-style: preserve-3d;
+  border: var(--frame) solid var(--frame-color, oklch(0.24 0.03 250));
+  outline: 1px solid var(--face-edge); outline-offset: -1px;
+  box-shadow: inset 0 0 0 1px var(--face-edge);
+  transition: border-color .4s, box-shadow .4s;
 }
 .cube-face-active {
-  border-color: var(--primary);
-  box-shadow: inset 0 0 120px oklch(0.82 0.16 75 / 0.2), 0 0 60px oklch(0.82 0.16 75 / 0.25);
+  --frame-color: oklch(0.3 0.05 70);
+  box-shadow: inset 0 0 0 1px var(--primary), 0 0 50px oklch(0.82 0.16 75 / 0.25);
 }
+.cube-well {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 40%, oklch(0.2 0.03 250 / 0.9), oklch(0.12 0.02 250 / 0.95));
+  box-shadow: inset 0 0 60px oklch(0 0 0 / 0.6);
+}
+.cube-face-active .cube-well {
+  box-shadow: inset 0 0 60px oklch(0 0 0 / 0.5), inset 0 0 120px oklch(0.82 0.16 75 / 0.15);
+}
+.cube-wall { position: absolute; }
+.cube-wall-top, .cube-wall-bottom { left: 0; right: 0; height: var(--well-depth); }
+.cube-wall-left, .cube-wall-right { top: 0; bottom: 0; width: var(--well-depth); }
+.cube-wall-top { top: 0; transform-origin: top; transform: rotateX(-90deg); background: linear-gradient(oklch(0.28 0.03 250), oklch(0.14 0.02 250)); }
+.cube-wall-bottom { bottom: 0; transform-origin: bottom; transform: rotateX(90deg); background: linear-gradient(oklch(0.12 0.02 250), oklch(0.2 0.03 250)); }
+.cube-wall-left { left: 0; transform-origin: left; transform: rotateY(90deg); background: linear-gradient(90deg, oklch(0.24 0.03 250), oklch(0.13 0.02 250)); }
+.cube-wall-right { right: 0; transform-origin: right; transform: rotateY(-90deg); background: linear-gradient(270deg, oklch(0.18 0.03 250), oklch(0.11 0.02 250)); }

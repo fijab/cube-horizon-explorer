@@ -183,9 +183,13 @@ function Index() {
               className={`cube-face ${active === f.key ? "cube-face-active" : ""}`}
               style={{ width: size, height: size, transform: `${f.transform} translateZ(${half}px)` }}
             >
+              <div className="cube-wall cube-wall-top" />
+              <div className="cube-wall cube-wall-bottom" />
+              <div className="cube-wall cube-wall-left" />
+              <div className="cube-wall cube-wall-right" />
               <div
-                className="flex h-full w-full flex-col justify-between p-10"
-                style={{ transform: `rotate(${contentRot[f.key] ?? 0}deg)` }}
+                className="cube-well flex flex-col justify-between p-8"
+                style={{ transform: `translateZ(calc(var(--well-depth) * -1)) rotate(${contentRot[f.key] ?? 0}deg)` }}
               >
                 <span className="font-mono text-xs tracking-widest text-primary">{f.label}</span>
                 <div>
