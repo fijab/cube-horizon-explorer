@@ -108,7 +108,7 @@ function Index() {
         TESSERACT
       </header>
       <div className="absolute right-8 top-8 z-10 font-mono text-xs text-muted-foreground">
-        X {rot.x.toFixed(0)}° · Y {rot.y.toFixed(0)}°
+        {faces.find((f) => f.key === active)?.label}
       </div>
 
       <div className="flex h-full items-center justify-center" style={{ perspective: size * 3 }}>
@@ -118,7 +118,7 @@ function Index() {
             width: size,
             height: size,
             transformStyle: "preserve-3d",
-            transform: `rotateX(${-rot.x}deg) rotateY(${rot.y}deg)`,
+            transform: matrix,
           }}
         >
           {faces.map((f) => (
