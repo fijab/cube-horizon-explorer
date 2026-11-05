@@ -27,10 +27,10 @@ const faces: Face[] = [
 ];
 
 const navButtons = [
-  { glyph: "↑", label: "Tilt up", dx: 90, dy: 0, tx: "0px", ty: "-22px" },
-  { glyph: "↓", label: "Tilt down", dx: -90, dy: 0, tx: "0px", ty: "22px" },
-  { glyph: "←", label: "Turn left", dx: 0, dy: 90, tx: "-22px", ty: "0px" },
-  { glyph: "→", label: "Turn right", dx: 0, dy: -90, tx: "22px", ty: "0px" },
+  { glyph: "↑", label: "Tilt up", dx: -90, dy: 0, tx: "0px", ty: "-22px", pos: "top" },
+  { glyph: "↓", label: "Tilt down", dx: 90, dy: 0, tx: "0px", ty: "22px", pos: "bottom" },
+  { glyph: "←", label: "Turn left", dx: 0, dy: 90, tx: "-22px", ty: "0px", pos: "left" },
+  { glyph: "→", label: "Turn right", dx: 0, dy: -90, tx: "22px", ty: "0px", pos: "right" },
 ];
 
 function Index() {
@@ -227,7 +227,7 @@ function Index() {
                         key={n.label}
                         type="button"
                         aria-label={n.label}
-                        className="cube-nav-btn"
+                        className={`cube-nav-btn cube-nav-${n.pos}`}
                         style={{ "--i": i, "--tx": n.tx, "--ty": n.ty } as CSSProperties}
                         onClick={() => turnRef.current(n.dx, n.dy)}
                       >
