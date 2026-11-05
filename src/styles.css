@@ -196,10 +196,15 @@
 .cube-wall-right { right: 0; transform-origin: right; transform: rotateY(-90deg); background: linear-gradient(270deg, oklch(0.18 0.03 250), oklch(0.11 0.02 250)); }
 
 .cube-nav {
-  position: absolute; left: 0; right: 0; bottom: 11rem;
-  display: flex; justify-content: center; gap: 0.75rem;
+  position: absolute; inset: 0;
+  pointer-events: none;
   z-index: 2;
 }
+.cube-nav-btn { position: absolute; }
+.cube-nav-top { top: 0.75rem; left: calc(50% - 1.45rem); }
+.cube-nav-bottom { bottom: 0.75rem; left: calc(50% - 1.45rem); }
+.cube-nav-left { left: 0.75rem; top: calc(50% - 1.45rem); }
+.cube-nav-right { right: 0.75rem; top: calc(50% - 1.45rem); }
 .cube-nav-btn {
   --i: 0; --tx: 0px; --ty: 22px;
   width: 2.9rem; height: 2.9rem; border-radius: 50%;
