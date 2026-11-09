@@ -212,7 +212,7 @@ function Index() {
               <div className="cube-wall cube-wall-left" />
               <div className="cube-wall cube-wall-right" />
               <div
-                className="cube-well flex flex-col justify-between px-16 pb-16 pt-8"
+                className="cube-well flex flex-col justify-between p-8"
                 style={{ transform: `translateZ(calc(var(--well-depth) * -1)) rotate(${contentRot[f.key] ?? 0}deg)` }}
               >
                 <span className="font-mono text-xs tracking-widest text-primary">{f.label}</span>
@@ -220,8 +220,9 @@ function Index() {
                   <h2 className="font-display text-4xl leading-none text-foreground md:text-5xl">{f.title}</h2>
                   <p className="mt-4 max-w-xs text-sm text-muted-foreground">{f.body}</p>
                 </div>
+              </div>
                 {navStamp > 0 && active === f.key && (
-                  <nav key={navStamp} className="cube-nav" aria-label="Cube navigation">
+                  <nav key={navStamp} className="cube-nav" aria-label="Cube navigation" style={{ transform: `translateZ(40px) rotate(${contentRot[f.key] ?? 0}deg)` }}>
                     {navButtons.map((n, i) => (
                       <button
                         key={n.label}
@@ -236,7 +237,6 @@ function Index() {
                     ))}
                   </nav>
                 )}
-              </div>
             </section>
           ))}
         </div>
