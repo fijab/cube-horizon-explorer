@@ -193,7 +193,7 @@ function Index() {
 
       <div className="flex h-full items-center justify-center" style={{ perspective: size * 3 }}>
         <div
-          className="relative"
+          className="pointer-events-none relative"
           style={{
             width: size,
             height: size,
