@@ -201,10 +201,10 @@
   z-index: 2;
 }
 .cube-nav-btn { position: absolute; }
-.cube-nav-top { top: calc(var(--frame) / -2 - 1.45rem); left: calc(50% - 1.45rem); }
-.cube-nav-bottom { bottom: calc(var(--frame) / -2 - 1.45rem); left: calc(50% - 1.45rem); }
-.cube-nav-left { left: calc(var(--frame) / -2 - 1.45rem); top: calc(50% - 1.45rem); }
-.cube-nav-right { right: calc(var(--frame) / -2 - 1.45rem); top: calc(50% - 1.45rem); }
+.cube-nav-top { top: calc(var(--frame) * -1); left: calc(50% - 1.45rem); }
+.cube-nav-bottom { bottom: calc(var(--frame) * -1); left: calc(50% - 1.45rem); }
+.cube-nav-left { left: calc(var(--frame) * -1); top: calc(50% - 1.45rem); }
+.cube-nav-right { right: calc(var(--frame) * -1); top: calc(50% - 1.45rem); }
 .cube-nav-btn {
   --i: 0; --tx: 0px; --ty: 22px;
   width: 2.9rem; height: 2.9rem; border-radius: 50%;
