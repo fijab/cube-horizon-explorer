@@ -38,7 +38,7 @@ function Index() {
   const [active, setActive] = useState("front");
   const [contentRot, setContentRot] = useState<Record<string, number>>({});
   const [size, setSize] = useState(420);
-  const [navStamp, setNavStamp] = useState(0);
+  const [navStamp, setNavStamp] = useState(1);
   const turnRef = useRef<(dx: number, dy: number) => void>(() => {});
 
   useEffect(() => {
