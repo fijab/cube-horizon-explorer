@@ -220,8 +220,9 @@ function Index() {
                   <h2 className="font-display text-4xl leading-none text-foreground md:text-5xl">{f.title}</h2>
                   <p className="mt-4 max-w-xs text-sm text-muted-foreground">{f.body}</p>
                 </div>
+              </div>
                 {navStamp > 0 && active === f.key && (
-                  <nav key={navStamp} className="cube-nav" aria-label="Cube navigation">
+                  <nav key={navStamp} className="cube-nav" aria-label="Cube navigation" style={{ transform: `translateZ(2px) rotate(${contentRot[f.key] ?? 0}deg)` }}>
                     {navButtons.map((n, i) => (
                       <button
                         key={n.label}
@@ -236,7 +237,6 @@ function Index() {
                     ))}
                   </nav>
                 )}
-              </div>
             </section>
           ))}
         </div>
