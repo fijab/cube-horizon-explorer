@@ -201,17 +201,17 @@
   z-index: 2;
 }
 .cube-nav-btn { position: absolute; }
-.cube-nav-top { top: 0.75rem; left: calc(50% - 1.45rem); }
-.cube-nav-bottom { bottom: 0.75rem; left: calc(50% - 1.45rem); }
-.cube-nav-left { left: 0.75rem; top: calc(50% - 1.45rem); }
-.cube-nav-right { right: 0.75rem; top: calc(50% - 1.45rem); }
+.cube-nav-top { top: calc(var(--frame) / -2 - 1.45rem); left: calc(50% - 1.45rem); }
+.cube-nav-bottom { bottom: calc(var(--frame) / -2 - 1.45rem); left: calc(50% - 1.45rem); }
+.cube-nav-left { left: calc(var(--frame) / -2 - 1.45rem); top: calc(50% - 1.45rem); }
+.cube-nav-right { right: calc(var(--frame) / -2 - 1.45rem); top: calc(50% - 1.45rem); }
 .cube-nav-btn {
   --i: 0; --tx: 0px; --ty: 22px;
   width: 2.9rem; height: 2.9rem; border-radius: 50%;
   display: grid; place-items: center;
   border: 1px solid oklch(0.65 0.02 250 / 0.35);
   color: var(--muted-foreground);
-  background: oklch(0.18 0.03 250 / 0.55);
+  background: oklch(0.16 0.03 250);
   font-family: var(--font-mono); font-size: 1.05rem; line-height: 1;
   cursor: pointer; opacity: 0;
   backdrop-filter: blur(6px);
