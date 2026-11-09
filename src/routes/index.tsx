@@ -193,7 +193,7 @@ function Index() {
 
       <div className="flex h-full items-center justify-center" style={{ perspective: size * 3 }}>
         <div
-          className="relative"
+          className="pointer-events-none relative"
           style={{
             width: size,
             height: size,
@@ -212,7 +212,7 @@ function Index() {
               <div className="cube-wall cube-wall-left" />
               <div className="cube-wall cube-wall-right" />
               <div
-                className="cube-well flex flex-col justify-between p-8"
+                className="cube-well flex flex-col justify-between px-16 pb-16 pt-8"
                 style={{ transform: `translateZ(calc(var(--well-depth) * -1)) rotate(${contentRot[f.key] ?? 0}deg)` }}
               >
                 <span className="font-mono text-xs tracking-widest text-primary">{f.label}</span>
