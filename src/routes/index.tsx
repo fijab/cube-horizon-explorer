@@ -222,7 +222,7 @@ function Index() {
                 </div>
               </div>
                 {navStamp > 0 && active === f.key && (
-                  <nav key={navStamp} className="cube-nav" aria-label="Cube navigation" style={{ transform: `translateZ(2px) rotate(${contentRot[f.key] ?? 0}deg)` }}>
+                  <nav key={navStamp} className="cube-nav" aria-label="Cube navigation" style={{ transform: `translateZ(40px) rotate(${contentRot[f.key] ?? 0}deg)` }}>
                     {navButtons.map((n, i) => (
                       <button
                         key={n.label}
