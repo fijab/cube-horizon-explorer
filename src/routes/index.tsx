@@ -40,6 +40,9 @@ function Index() {
   const [size, setSize] = useState(420);
   const [navStamp, setNavStamp] = useState(1);
   const turnRef = useRef<(dx: number, dy: number) => void>(() => {});
+  const [page, setPage] = useState<{ key: string; closing: boolean } | null>(null);
+  const pageRef = useRef(false);
+  pageRef.current = page !== null;
 
   useEffect(() => {
     // Orientation is a matrix; each input rotates around SCREEN axes (pre-multiplied),
@@ -112,6 +115,7 @@ function Index() {
     window.addEventListener("resize", resize);
     let wheelTimer: ReturnType<typeof setTimeout> | undefined;
     const onWheel = (e: WheelEvent) => {
+      if (pageRef.current) return;
       e.preventDefault();
       const horiz = e.shiftKey ? e.deltaY : e.deltaX;
       const vert = e.shiftKey ? 0 : e.deltaY;
@@ -123,15 +127,16 @@ function Index() {
     const ts = (e: TouchEvent) => { const t0 = e.touches[0]; if (t0) touch = { x: t0.clientX, y: t0.clientY }; };
     const tm = (e: TouchEvent) => {
       const t = e.touches[0];
-      if (!touch || !t) return;
+      if (!touch || !t || pageRef.current) return;
       const dx = t.clientX - touch.x;
       const dy = t.clientY - touch.y;
       if (!axis && Math.hypot(dx, dy) < 6) return;
       push(dx * 0.4, dy * 0.4);
       touch = { x: t.clientX, y: t.clientY };
     };
-    const te = () => { touch = null; release(); };
+    const te = () => { touch = null; if (!pageRef.current) release(); };
     const key = (e: KeyboardEvent) => {
+      if (pageRef.current) return;
       const d: Record<string, [number, number]> = { ArrowUp: [90, 0], ArrowDown: [-90, 0], ArrowLeft: [0, 90], ArrowRight: [0, -90] };
       const k = d[e.key];
       if (k) turn(k[0], k[1]);
@@ -180,9 +185,20 @@ function Index() {
   }, []);
 
   const half = size / 2;
+  const openFace = (e: React.MouseEvent) => {
+    if (page || (e.target as HTMLElement).closest("button")) return;
+    const dx = Math.abs(e.clientX - window.innerWidth / 2);
+    const dy = Math.abs(e.clientY - window.innerHeight / 2);
+    if (dx < half && dy < half) setPage({ key: active, closing: false });
+  };
+  const closePage = () => {
+    setPage((p) => (p ? { ...p, closing: true } : p));
+    setTimeout(() => setPage(null), 600);
+  };
+  const pageFace = faces.find((f) => f.key === page?.key);
 
   return (
-    <main className="cube-stage fixed inset-0 overflow-hidden">
+    <main className="cube-stage fixed inset-0 overflow-hidden" onClick={openFace}>
       <div className="cube-grid" />
       <header className="absolute left-8 top-8 z-10 font-display text-sm tracking-[0.3em] text-muted-foreground">
         TESSERACT
@@ -241,6 +257,32 @@ function Index() {
           ))}
         </div>
       </div>
+
+      {pageFace && page && (
+        <div
+          className={`face-page ${page.closing ? "face-page-closing" : ""}`}
+          style={{ "--start": `calc(50% - ${half}px)` } as CSSProperties}
+          onClick={(e) => { e.stopPropagation(); closePage(); }}
+        >
+          <article className="mx-auto max-w-3xl px-8 py-24">
+            <span className="font-mono text-xs tracking-widest text-primary">{pageFace.label}</span>
+            <h1 className="mt-6 font-display text-6xl leading-none text-foreground md:text-8xl">{pageFace.title}</h1>
+            <p className="mt-8 text-lg text-muted-foreground">{pageFace.body}</p>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <section key={n} className="mt-20 border-t border-border pt-10">
+                <h2 className="font-display text-4xl text-foreground">Chapter {n}</h2>
+                <p className="mt-4 leading-relaxed text-muted-foreground">
+                  Inside the face, the cube unfolds into a page. Space opens up, edges dissolve, and the room becomes a place to read. Scroll as far as you like — the walls will wait.
+                </p>
+                <p className="mt-4 leading-relaxed text-muted-foreground">
+                  Every face holds its own story. Tap anywhere to fold this page back into the cube and keep exploring the other sides.
+                </p>
+              </section>
+            ))}
+            <p className="mt-24 text-center font-mono text-xs text-muted-foreground">click anywhere to return to the cube</p>
+          </article>
+        </div>
+      )}
 
       <footer className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-center font-mono text-xs text-muted-foreground">
         scroll ↕ · shift/trackpad ↔ · arrow keys · swipe
