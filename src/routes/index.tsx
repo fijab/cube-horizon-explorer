@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as RMouseEvent } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -185,7 +185,7 @@ function Index() {
   }, []);
 
   const half = size / 2;
-  const openFace = (e: React.MouseEvent) => {
+  const openFace = (e: RMouseEvent) => {
     if (page || (e.target as HTMLElement).closest("button")) return;
     const dx = Math.abs(e.clientX - window.innerWidth / 2);
     const dy = Math.abs(e.clientY - window.innerHeight / 2);
