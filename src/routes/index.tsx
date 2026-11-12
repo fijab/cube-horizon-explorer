@@ -1,23 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as RMouseEvent } from "react";
 
+import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { loadStoryblokBridge, storyblokEditable } from '@storyblok/react';
+import { cubeContentOptions } from '@/lib/cube-content.functions';
+import { faceKeyForStory, storySchema, type CubeStory } from '@/lib/cube-content';
+import { CubeStoryBlocks } from '@/components/cube-storyblok';
+
 export const Route = createFileRoute("/")({
-  head: () => ({
+  loader: ({ context }) => context.queryClient.ensureQueryData(cubeContentOptions),
+  head: ({ loaderData }) => {
+    const content = loaderData?.stories.find(story => story.full_slug === 'cube-front')?.content;
+    const title = content?.seo_title || 'Tesseract — A Website Shaped Like a Cube';
+    const description = content?.seo_description || 'Scroll vertically and horizontally to rotate through six faces of a 3D cube.';
+    return {
     meta: [
-      { title: "Tesseract — A Website Shaped Like a Cube" },
-      { name: "description", content: "Scroll vertically and horizontally to rotate through six faces of a 3D cube." },
-      { property: "og:title", content: "Tesseract — A Website Shaped Like a Cube" },
-      { property: "og:description", content: "Scroll in any direction to explore six faces in depth." },
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-  }),
+  };
+  },
   component: Index,
 });
 
 type Face = { key: string; label: string; title: string; body: string; transform: string };
 
-const faces: Face[] = [
+const defaultFaces: Face[] = [
   { key: "front", label: "01 / Front", title: "Enter the cube", body: "Scroll down to tumble forward. Scroll sideways to turn. Every face is a room.", transform: "rotateY(0deg)" },
   { key: "right", label: "02 / East", title: "Depth is a direction", body: "Space isn't flat. Neither is this page. You've turned ninety degrees into it.", transform: "rotateY(90deg)" },
   { key: "back", label: "03 / Behind", title: "The far side", body: "What you left behind is still here, waiting on the opposite wall.", transform: "rotateY(180deg)" },
@@ -34,6 +46,15 @@ const navButtons = [
 ];
 
 function Index() {
+  const { data } = useSuspenseQuery(cubeContentOptions);
+  const queryClient = useQueryClient();
+  const [liveStories, setLiveStories] = useState<Record<string, CubeStory>>({});
+  const stories = data.stories.map(story => liveStories[story.full_slug] ?? story);
+  const faces = defaultFaces.map(face => {
+    const story = stories.find(item => faceKeyForStory(item) === face.key);
+    const teaser = story?.content.body.find(block => block.component === 'teaser');
+    return { ...face, title: teaser?.headline ?? face.title, body: teaser?.intro ?? face.body, story };
+  });
   const [matrix, setMatrix] = useState("none");
   const [active, setActive] = useState("front");
   const [contentRot, setContentRot] = useState<Record<string, number>>({});
@@ -43,6 +64,29 @@ function Index() {
   const [page, setPage] = useState<{ key: string; closing: boolean } | null>(null);
   const pageRef = useRef(false);
   pageRef.current = page !== null;
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).has('_storyblok')) return;
+    let disposed = false;
+    void loadStoryblokBridge().then(() => {
+      if (disposed || !window.StoryblokBridge) return;
+      const bridge = new window.StoryblokBridge();
+      bridge.on('input', event => {
+        if (disposed) return;
+        const parsed = storySchema.safeParse(event?.story);
+        if (!parsed.success) return;
+        const key = faceKeyForStory(parsed.data);
+        if (!key) return;
+        setLiveStories(previous => ({ ...previous, [parsed.data.full_slug]: parsed.data }));
+        setPage({ key, closing: false });
+      });
+      bridge.on(['published', 'change'], () => {
+        if (disposed) return;
+        setLiveStories({});
+        void queryClient.invalidateQueries({ queryKey: cubeContentOptions.queryKey });
+      });
+    }).catch(error => console.error('Storyblok editor could not load', error));
+    return () => { disposed = true; };
+  }, [queryClient]);
 
   useEffect(() => {
     // Orientation is a matrix; each input rotates around SCREEN axes (pre-multiplied),
@@ -54,7 +98,7 @@ function Index() {
     const gesture = { x: 0, y: 0 };
     let axis: "x" | "y" | null = null;
     let snapping = false;
-    const faceMats = faces.map((f) => ({ key: f.key, mat: new DOMMatrix(f.transform) }));
+    const faceMats = defaultFaces.map((f) => ({ key: f.key, mat: new DOMMatrix(f.transform) }));
 
     // When a turn direction is known, pre-rotate the content of every hidden face
     // that this turn can bring to the front, so it lands upright after the snap.
@@ -229,6 +273,7 @@ function Index() {
               <div className="cube-wall cube-wall-right" />
               <div
                 className="cube-well flex flex-col justify-between p-8"
+                {...(f.story ? storyblokEditable(f.story.content) : {})}
                 style={{ transform: `translateZ(calc(var(--well-depth) * -1)) rotate(${contentRot[f.key] ?? 0}deg)` }}
               >
                 <span className="font-mono text-xs tracking-widest text-primary">{f.label}</span>
@@ -266,6 +311,7 @@ function Index() {
         >
           <article className="mx-auto max-w-3xl px-8 py-24">
             <span className="font-mono text-xs tracking-widest text-primary">{pageFace.label}</span>
+            {pageFace.story ? <CubeStoryBlocks blocks={pageFace.story.content.body} /> : <>
             <h1 className="mt-6 font-display text-6xl leading-none text-foreground md:text-8xl">{pageFace.title}</h1>
             <p className="mt-8 text-lg text-muted-foreground">{pageFace.body}</p>
             {[1, 2, 3, 4, 5].map((n) => (
@@ -279,6 +325,7 @@ function Index() {
                 </p>
               </section>
             ))}
+            </>}
             <p className="mt-24 text-center font-mono text-xs text-muted-foreground">click anywhere to return to the cube</p>
           </article>
         </div>
