@@ -273,7 +273,7 @@ function Index() {
               <div className="cube-wall cube-wall-right" />
               <div
                 className="cube-well flex flex-col justify-between p-8"
-                {...(f.story ? storyblokEditable(f.story.content) : {})}
+                {...(f.story ? storyblokEditable(f.story.content._editable ? { _editable: f.story.content._editable } : {}) : {})}
                 style={{ transform: `translateZ(calc(var(--well-depth) * -1)) rotate(${contentRot[f.key] ?? 0}deg)` }}
               >
                 <span className="font-mono text-xs tracking-widest text-primary">{f.label}</span>
