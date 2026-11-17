@@ -22,3 +22,12 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Static hosting with Storyblok
+
+- Build command: `npm run build` (or `bun run build`).
+- Static output directory: `dist/client`.
+- Add `LOVABLE_API_KEY` and `STORYBLOK_API_KEY_2` to the external host's **build environment**, using the same linked gateway credentials as this project. `STORYBLOK_API_KEY_2` is a Lovable connector key, not a raw Storyblok token. Never commit either credential or prefix it with `VITE_`.
+- The build reads published Storyblok stories and saves their content and query state in the HTML. Visitors do not need a server-function endpoint, and focus/reconnection does not refetch content.
+- Rebuild after publishing Storyblok changes. Missing credentials or failed Storyblok reads fail prerendering instead of silently baking in placeholder content.
+- Live editing that saves/publishes content requires a server-backed preview; static hosting uses the saved build snapshot.
