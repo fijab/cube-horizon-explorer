@@ -27,7 +27,10 @@ describe('Static Storyblok content', () => {
     const restored = new QueryClient();
     hydrate(restored, JSON.parse(saved));
     const query = restored.getQueryCache().find({ queryKey: ['cube-content'] });
-    expect(query?.isStaleByTime(cubeContentOptions.staleTime)).toBe(false);
+    const staleTime = cubeContentOptions.staleTime;
+    expect(staleTime).toBe(Infinity);
+    if (typeof staleTime !== 'number') throw new Error('Static content requires a numeric freshness duration');
+    expect(query?.isStaleByTime(staleTime)).toBe(false);
     expect(cubeContentOptions.refetchOnMount).toBe(false);
     expect(cubeContentOptions.refetchOnWindowFocus).toBe(false);
     expect(cubeContentOptions.refetchOnReconnect).toBe(false);

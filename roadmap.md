@@ -10,5 +10,5 @@
 - [x] Verify mobile navigation, swipes, and expanded-page scrolling.
 
 # Static Storyblok content
-- [ ] Preserve built Storyblok content when the page becomes interactive, without requiring a server on static hosting.
-- [ ] Detect missing build credentials and verify the saved content survives loading and navigation.
+- [x] Preserve built Storyblok content when the page becomes interactive, without requiring a server on static hosting.
+- [x] Detect missing build credentials and verify the saved content survives loading and navigation.
