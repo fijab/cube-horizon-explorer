@@ -16,3 +16,4 @@
 - Enable Nitro only inside the Lovable sandbox; external static builds use TanStack's Node prerenderer to avoid executing a Cloudflare Worker wrapper during build.
 - Run a published-content preflight before the build; external builds read the Storyblok CDN directly with only the public token, Lovable routes through the connector gateway (why: hosts outside Lovable lack the gateway key).
 - Keep cube previews bounded with clamped text and mobile frame sizing in CSS; expanded stories remain scrollable so long content is available without spilling across 3D faces.
+- Cloudflare Workers deploys serve only the prerendered `dist/client` folder as static assets via `wrangler.jsonc` (why: a config file stops wrangler from trying to rewrite the Vite config, and no server code is needed).
