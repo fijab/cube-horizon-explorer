@@ -9,4 +9,6 @@ export const getCubeContent = createServerFn({method:'GET'}).handler(async ():Pr
  return {stories:parseCubeStories(await response.json()),error:null};
  }catch(error){console.error('Storyblok content read failed',error);return {stories:[],error:'Storyblok content is temporarily unavailable.'};}
 });
-export const cubeContentOptions=queryOptions({queryKey:['cube-content'],queryFn:()=>getCubeContent(),staleTime:60000});
+// Static hosting has no server-function endpoint: keep the build's snapshot
+// until an explicit editor invalidation or the next rebuild.
+export const cubeContentOptions=queryOptions({queryKey:['cube-content'],queryFn:()=>getCubeContent(),staleTime:Infinity,refetchOnMount:false,refetchOnWindowFocus:false,refetchOnReconnect:false});
