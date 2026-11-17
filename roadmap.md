@@ -5,6 +5,6 @@
 - [ ] Configure and verify the Storyblok visual-editor preview — waiting for the website to be published.
 
 # Mobile cube layout
-- [ ] Tighten screen/content margins and reduce mobile arrows and frames.
-- [ ] Contain face text and stop cube swipes scrolling the page while keeping expanded pages scrollable.
-- [ ] Verify mobile navigation, swipes, and expanded-page scrolling.
+- [x] Tighten screen/content margins and reduce mobile arrows and frames.
+- [x] Contain face text and stop cube swipes scrolling the page while keeping expanded pages scrollable.
+- [x] Verify mobile navigation, swipes, and expanded-page scrolling.
