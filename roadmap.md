@@ -15,3 +15,5 @@
 
 # Cloudflare build failure
 - [x] Use the standard static renderer for external builds and verify the configuration with regression tests.
+- [x] Add and test an early build credential/content check to expose failures hidden behind prerender's generic 500.
+- [ ] Confirm Cloudflare deployment succeeds — needs a new external build log after the prerequisite check.
