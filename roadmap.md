@@ -14,4 +14,4 @@
 - [x] Detect missing build credentials and verify the saved content survives loading and navigation.
 
 # Cloudflare build failure
-- [ ] Use the standard static renderer for external builds and verify the configuration.
+- [x] Use the standard static renderer for external builds and verify the configuration with regression tests.
