@@ -1,18 +1,27 @@
 import { pathToFileURL } from 'node:url';
 
-export async function checkStoryblokBuild(env, fetchContent = fetch) {
-  const required = ['LOVABLE_API_KEY', 'STORYBLOK_API_KEY_2'];
-  const missing = required.filter(name => !env[name]?.trim());
-  if (missing.length) {
-    throw new Error(`Missing Cloudflare BUILD environment variables: ${missing.join(', ')}. Add them in Cloudflare build settings, not only Worker runtime secrets. Lovable credentials do not automatically sync to Cloudflare. STORYBLOK_API_KEY_2 must be the linked connector key, not a raw Storyblok token.`);
+const hosts = { eu: 'api.storyblok.com', us: 'api-us.storyblok.com', ap: 'api-ap.storyblok.com', ca: 'api-ca.storyblok.com', cn: 'app.storyblokchina.cn' };
+
+// Lovable uses the connector gateway (needs LOVABLE_API_KEY); external builds
+// only need STORYBLOK_API_KEY_2 holding the Storyblok public access token.
+export function storyblokRequest(env) {
+  const query = 'starts_with=cube-&version=published&per_page=100';
+  if (env.LOVABLE_API_KEY?.trim()) {
+    return { url: `https://connector-gateway.lovable.dev/storyblok/stories?${query}`, headers: { Authorization: `Bearer ${env.LOVABLE_API_KEY}`, 'X-Connection-Api-Key': env.STORYBLOK_API_KEY_2 } };
   }
-  const response = await fetchContent('https://connector-gateway.lovable.dev/storyblok/stories?starts_with=cube-&version=published&per_page=100', {
-    headers: { Authorization: `Bearer ${env.LOVABLE_API_KEY}`, 'X-Connection-Api-Key': env.STORYBLOK_API_KEY_2 },
-    signal: AbortSignal.timeout(10000),
-  });
+  const host = hosts[(env.STORYBLOK_REGION || 'eu').trim().toLowerCase()] ?? hosts.eu;
+  return { url: `https://${host}/v2/cdn/stories?${query}&token=${encodeURIComponent(env.STORYBLOK_API_KEY_2)}`, headers: {} };
+}
+
+export async function checkStoryblokBuild(env, fetchContent = fetch) {
+  if (!env.STORYBLOK_API_KEY_2?.trim()) {
+    throw new Error('Missing build environment variable STORYBLOK_API_KEY_2. Set it to your Storyblok public access token in the host\'s build settings.');
+  }
+  const { url, headers } = storyblokRequest(env);
+  const response = await fetchContent(url, { headers, signal: AbortSignal.timeout(10000) });
   if (!response.ok) {
     // Provider bodies may contain credential metadata; never print them in CI.
-    throw new Error(`Storyblok build check failed (HTTP ${response.status}). Verify both build credentials belong to the linked Storyblok delivery connection.`);
+    throw new Error(`Storyblok build check failed (HTTP ${response.status}). Verify STORYBLOK_API_KEY_2 is a valid public access token for the cube space (set STORYBLOK_REGION if the space is not in the EU).`);
   }
   const payload = await response.json();
   const faces = new Set(['cube-front', 'cube-right', 'cube-back', 'cube-left', 'cube-top', 'cube-bottom']);
