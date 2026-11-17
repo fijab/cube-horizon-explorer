@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 
 // Load the standalone CI script without a declaration-only wrapper.
-const source = readFileSync(new URL('../../scripts/check-storyblok.mjs', import.meta.url), 'utf8');
+const source = readFileSync(`${process.cwd()}/scripts/check-storyblok.mjs`, 'utf8');
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const { checkStoryblokBuild } = await import(/* @vite-ignore */ moduleUrl);
 
