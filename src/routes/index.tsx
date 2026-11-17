@@ -190,7 +190,7 @@ function Index() {
       const dx = t.clientX - touch.x;
       const dy = t.clientY - touch.y;
       if (!axis && Math.hypot(dx, dy) < 6) return;
-      push(dx * 0.4, dy * 0.4);
+      push(dx * 0.4, -dy * 0.4);
       touch = { x: t.clientX, y: t.clientY };
     };
     const te = () => { touch = null; if (!pageRef.current) release(); };
