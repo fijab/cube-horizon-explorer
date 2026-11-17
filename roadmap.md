@@ -12,3 +12,6 @@
 # Static Storyblok content
 - [x] Preserve built Storyblok content when the page becomes interactive, without requiring a server on static hosting.
 - [x] Detect missing build credentials and verify the saved content survives loading and navigation.
+
+# Cloudflare build failure
+- [ ] Use the standard static renderer for external builds and verify the configuration.
