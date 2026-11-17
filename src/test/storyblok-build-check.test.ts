@@ -19,8 +19,8 @@ describe('Storyblok build prerequisites', () => {
   it('builds with only STORYBLOK_API_KEY_2 by calling the Storyblok CDN directly', async () => {
     const request = vi.fn().mockResolvedValue(Response.json({ stories: [{ full_slug: 'cube-top', content: { component: 'cube_face' } }] }));
     await expect(checkStoryblokBuild({ STORYBLOK_API_KEY_2: 'tok' }, request)).resolves.toBe(1);
-    expect(request.mock.calls[0][0]).toContain('https://api.storyblok.com/v2/cdn/stories');
-    expect(request.mock.calls[0][0]).toContain('token=tok');
+    expect(request.mock.calls[0]?.[0]).toContain('https://api.storyblok.com/v2/cdn/stories');
+    expect(request.mock.calls[0]?.[0]).toContain('token=tok');
   });
   it('accepts published cube content', async () => {
     const request = vi.fn().mockResolvedValue(Response.json({ stories: [{ full_slug: 'cube-front', content: { component: 'cube_face' } }] }));

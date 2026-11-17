@@ -12,7 +12,7 @@ export const getCubeContent = createServerFn({method:'GET'}).handler(async ():Pr
  const query='starts_with=cube-&version=published&per_page=100';
  // Inside Lovable the key is a connector key routed through the gateway; external
  // builds supply the Storyblok public token directly, so no gateway key is needed.
- const host=hosts[(process.env['STORYBLOK_REGION']||'eu').toLowerCase()]??hosts.eu;
+ const host=hosts[(process.env['STORYBLOK_REGION']||'eu').toLowerCase()]??'api.storyblok.com';
  const url=gatewayKey?`https://connector-gateway.lovable.dev/storyblok/stories?${query}`:`https://${host}/v2/cdn/stories?${query}&token=${encodeURIComponent(contentKey)}`;
  const headers:Record<string,string>=gatewayKey?{Authorization:`Bearer ${gatewayKey}`,'X-Connection-Api-Key':contentKey}:{};
  try{const response=await fetch(url,{headers,signal:AbortSignal.timeout(10000)});
