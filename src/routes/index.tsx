@@ -6,6 +6,7 @@ import { loadStoryblokBridge, storyblokEditable } from '@storyblok/react';
 import { cubeContentOptions } from '@/lib/cube-content.functions';
 import { faceKeyForStory, storySchema, type CubeStory } from '@/lib/cube-content';
 import { CubeStoryBlocks } from '@/components/cube-storyblok';
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(cubeContentOptions),
@@ -89,6 +90,17 @@ function Index() {
   }, [queryClient]);
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscroll = document.body.style.overscrollBehavior;
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'none';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscroll;
+    };
+  }, []);
+
+  useEffect(() => {
     // Orientation is a matrix; each input rotates around SCREEN axes (pre-multiplied),
     // so controls feel the same no matter which face is toward the camera.
     // Orientation stays axis-aligned: each gesture is locked to one axis (x or y)
@@ -154,7 +166,9 @@ function Index() {
     };
     turnRef.current = turn;
 
-    const resize = () => setSize(Math.min(window.innerWidth, window.innerHeight) * 0.55);
+    const resize = () => setSize(window.innerWidth < 768
+      ? Math.min(window.innerWidth * 0.74, window.innerHeight * 0.6)
+      : Math.min(window.innerWidth, window.innerHeight) * 0.55);
     resize();
     window.addEventListener("resize", resize);
     let wheelTimer: ReturnType<typeof setTimeout> | undefined;
@@ -168,10 +182,11 @@ function Index() {
       wheelTimer = setTimeout(release, 160);
     };
     let touch: { x: number; y: number } | null = null;
-    const ts = (e: TouchEvent) => { const t0 = e.touches[0]; if (t0) touch = { x: t0.clientX, y: t0.clientY }; };
+    const ts = (e: TouchEvent) => { if (pageRef.current) return; const t0 = e.touches[0]; if (t0) touch = { x: t0.clientX, y: t0.clientY }; };
     const tm = (e: TouchEvent) => {
       const t = e.touches[0];
       if (!touch || !t || pageRef.current) return;
+      if (e.cancelable) e.preventDefault();
       const dx = t.clientX - touch.x;
       const dy = t.clientY - touch.y;
       if (!axis && Math.hypot(dx, dy) < 6) return;
@@ -187,8 +202,9 @@ function Index() {
     };
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", ts);
-    window.addEventListener("touchmove", tm);
+    window.addEventListener("touchmove", tm, { passive: false });
     window.addEventListener("touchend", te);
+    window.addEventListener("touchcancel", te);
     window.addEventListener("keydown", key);
     let raf = 0;
     const loop = () => {
@@ -223,6 +239,7 @@ function Index() {
       window.removeEventListener("touchstart", ts);
       window.removeEventListener("touchmove", tm);
       window.removeEventListener("touchend", te);
+      window.removeEventListener("touchcancel", te);
       clearTimeout(wheelTimer);
       window.removeEventListener("keydown", key);
     };
@@ -244,10 +261,10 @@ function Index() {
   return (
     <main className="cube-stage fixed inset-0 overflow-hidden" onClick={openFace}>
       <div className="cube-grid" />
-      <header className="absolute left-8 top-8 z-10 font-display text-sm tracking-[0.3em] text-muted-foreground">
+      <header className="absolute left-3 top-4 z-10 font-display text-sm text-muted-foreground md:left-8 md:top-8">
         TESSERACT
       </header>
-      <div className="absolute right-8 top-8 z-10 font-mono text-xs text-muted-foreground">
+      <div className="absolute right-3 top-4 z-10 font-mono text-xs text-muted-foreground md:right-8 md:top-8">
         {faces.find((f) => f.key === active)?.label}
       </div>
 
@@ -272,29 +289,31 @@ function Index() {
               <div className="cube-wall cube-wall-left" />
               <div className="cube-wall cube-wall-right" />
               <div
-                className="cube-well flex flex-col justify-between p-8"
+                className="cube-well flex min-h-0 min-w-0 flex-col justify-between gap-3 p-3 md:p-8"
                 {...(f.story ? storyblokEditable(f.story.content._editable ? { _editable: f.story.content._editable } : {}) : {})}
                 style={{ transform: `translateZ(calc(var(--well-depth) * -1)) rotate(${contentRot[f.key] ?? 0}deg)` }}
               >
-                <span className="font-mono text-xs tracking-widest text-primary">{f.label}</span>
-                <div>
-                  <h2 className="font-display text-4xl leading-none text-foreground md:text-5xl">{f.title}</h2>
-                  <p className="mt-4 max-w-xs text-sm text-muted-foreground">{f.body}</p>
+                <span className="shrink-0 truncate font-mono text-xs text-primary">{f.label}</span>
+                <div className="cube-teaser min-h-0 min-w-0 overflow-hidden">
+                  <h2 className="cube-title font-display text-3xl leading-none text-foreground md:text-5xl">{f.title}</h2>
+                  <p className="cube-intro mt-2 max-w-xs text-sm text-muted-foreground md:mt-4">{f.body}</p>
                 </div>
               </div>
                 {navStamp > 0 && active === f.key && (
                   <nav key={navStamp} className="cube-nav" aria-label="Cube navigation" style={{ transform: `translateZ(40px) rotate(${contentRot[f.key] ?? 0}deg)` }}>
                     {navButtons.map((n, i) => (
-                      <button
+                      <Button
                         key={n.label}
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         aria-label={n.label}
                         className={`cube-nav-btn cube-nav-${n.pos}`}
                         style={{ "--i": i, "--tx": n.tx, "--ty": n.ty } as CSSProperties}
                         onClick={() => turnRef.current(n.dx, n.dy)}
                       >
                         {n.glyph}
-                      </button>
+                      </Button>
                     ))}
                   </nav>
                 )}
@@ -309,7 +328,7 @@ function Index() {
           style={{ "--start": `calc(50% - ${half}px)` } as CSSProperties}
           onClick={(e) => { e.stopPropagation(); closePage(); }}
         >
-          <article className="mx-auto max-w-3xl px-8 py-24">
+          <article className="mx-auto max-w-3xl px-4 py-16 md:px-8 md:py-24">
             <span className="font-mono text-xs tracking-widest text-primary">{pageFace.label}</span>
             {pageFace.story ? <CubeStoryBlocks blocks={pageFace.story.content.body} /> : <>
             <h1 className="mt-6 font-display text-6xl leading-none text-foreground md:text-8xl">{pageFace.title}</h1>
@@ -331,7 +350,7 @@ function Index() {
         </div>
       )}
 
-      <footer className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-center font-mono text-xs text-muted-foreground">
+      <footer className="absolute bottom-4 left-3 right-3 z-10 text-center font-mono text-xs text-muted-foreground md:bottom-8">
         scroll ↕ · shift/trackpad ↔ · arrow keys · swipe
       </footer>
     </main>
