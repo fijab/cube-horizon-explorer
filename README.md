@@ -27,6 +27,8 @@ npm run dev
 
 - Build command: `npm run build` (or `bun run build`).
 - Static output directory: `dist/client`.
+- External builds skip Worker packaging and use the standard static renderer; Lovable builds retain their managed Worker packaging.
+- For **Cloudflare Pages**, choose framework preset **None**, build command `npm run build`, and output directory `dist/client`. The attached Workers build log used `.output/public`; that folder belongs to the previous Worker packaging, not this static build.
 - Add `LOVABLE_API_KEY` and `STORYBLOK_API_KEY_2` to the external host's **build environment**, using the same linked gateway credentials as this project. `STORYBLOK_API_KEY_2` is a Lovable connector key, not a raw Storyblok token. Never commit either credential or prefix it with `VITE_`.
 - The build reads published Storyblok stories and saves their content and query state in the HTML. Visitors do not need a server-function endpoint, and focus/reconnection does not refetch content.
 - Rebuild after publishing Storyblok changes. Missing credentials or failed Storyblok reads fail prerendering instead of silently baking in placeholder content.

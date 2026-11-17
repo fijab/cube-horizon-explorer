@@ -13,4 +13,5 @@
 - Cube face stories compose reusable teaser and reading blocks rendered with the Storyblok SDK, keeping content editing independent of rotation.
 - The cube page is prerendered to static HTML at build time; Storyblok content refreshes on each rebuild/publish (why: static hosting, no per-request rendering).
 - Serialize the Query cache through Router dehydrate/hydrate and disable automatic cube-content refetches; static hosts must hydrate the build snapshot without calling a server endpoint.
+- Enable Nitro only inside the Lovable sandbox; external static builds use TanStack's Node prerenderer to avoid executing a Cloudflare Worker wrapper during build.
 - Keep cube previews bounded with clamped text and mobile frame sizing in CSS; expanded stories remain scrollable so long content is available without spilling across 3D faces.
